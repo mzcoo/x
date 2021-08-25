@@ -66,61 +66,9 @@ function install_tools(){
 
 function install_wg(){
     check_release
-    if [ "$RELEASE" == "centos" ] && [ "$VERSION" == "7" ]; then
-        yum install -y yum-utils epel-release
-        yum-config-manager --setopt=centosplus.includepkgs=kernel-plus --enablerepo=centosplus --save
-        sed -e 's/^DEFAULTKERNEL=kernel$/DEFAULTKERNEL=kernel-plus/' -i /etc/sysconfig/kernel
-        yum install -y kernel-plus wireguard-tools
-	sed -i "s/GRUB_DEFAULT=saved/GRUB_DEFAULT=0/" /etc/default/grub
-        grub2-mkconfig -o /boot/grub2/grub.cfg
-        systemctl stop firewalld
-        systemctl disable firewalld
-        install_tools "yum"
-    elif [ "$RELEASE" == "centos" ] && [ "$VERSION" == "8" ]; then
-        yum install -y yum-utils epel-release
-        yum-config-manager --setopt=centosplus.includepkgs="kernel-plus, kernel-plus-*" --setopt=centosplus.enabled=1 --save
-        sed -e 's/^DEFAULTKERNEL=kernel-core$/DEFAULTKERNEL=kernel-plus-core/' -i /etc/sysconfig/kernel
-        yum install -y kernel-plus wireguard-tools
-	sed -i "s/GRUB_DEFAULT=saved/GRUB_DEFAULT=0/" /etc/default/grub
-        grub2-mkconfig -o /boot/grub2/grub.cfg
-        systemctl stop firewalld
-        systemctl disable firewalld
-        install_tools "yum"
-    elif [ "$RELEASE" == "ubuntu" ]; then
-        if [ "$VERSION" == "12.04" ] || [ "$VERSION" == "16.04" ]; then
-	    red "=================="
-            red "$RELEASE $VERSION系统暂未支持"
-            red "=================="
-	    exit
-	fi
-        systemctl stop ufw
-        systemctl disable ufw
-	apt-get install -y wget
-	wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8.15/amd64/linux-headers-5.8.15-050815-generic_5.8.15-050815.202010141131_amd64.deb
-	wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8.15/amd64/linux-headers-5.8.15-050815_5.8.15-050815.202010141131_all.deb
-	wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8.15/amd64/linux-image-unsigned-5.8.15-050815-generic_5.8.15-050815.202010141131_amd64.deb
-	wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.8.15/amd64/linux-modules-5.8.15-050815-generic_5.8.15-050815.202010141131_amd64.deb
-	dpkg -i *.deb
-	apt-get -y update
-        #apt-get install -y software-properties-common
-        apt-get install -y openresolv
-        #add-apt-repository -y ppa:wireguard/wireguard
-        apt-get install -y wireguard
-        install_tools "apt-get"
-    elif [ "$RELEASE" == "debian" ]; then
-        echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list
-        #printf 'Package: *\nPin: release a=unstable\nPin-Priority: 90\n' > /etc/apt/preferences.d/limit-unstable
-        apt update
-	apt install -y linux-image-5.8.0-0.bpo.2-cloud-amd64
-	apt install -y wireguard openresolv
-	#apt update
-        #apt install -y wireguard
-        install_tools "apt"
-    else
-        red "=================="
-        red "$RELEASE $VERSION系统暂未支持"
-        red "=================="
-    fi
+    apt update
+    apt install -y wireguard openresolv
+    install_tools "apt"
 }
 
 function config_wg(){
