@@ -1,5 +1,4 @@
 #!/bin/bash
-
 export ipAddr=$(ip route get 1 | awk -F 'src ' '{print $2}' | awk '{print $1}')
 export ipGate=$(ip route | grep default | awk '{print $3}' | head -1)
 export SUBNET=$(ip -o -f inet addr show | awk '/scope global/{sub(/[^.]+\//,"0/",$4);print $4}' | head -1 | awk -F '/' '{print $2}')
@@ -32,6 +31,112 @@ export GRUBDIR=''
 export GRUBFILE=''
 export GRUBVER=''
 export VER=''
+while [[ $# -ge 1 ]]; do
+  case $1 in
+    -v|--ver)
+      shift
+      tmpVER="$1"
+      shift
+      ;;
+    -d|--debian)
+      shift
+      Relese='Debian'
+      tmpDIST="$1"
+      shift
+      ;;
+    -u|--ubuntu)
+      shift
+      Relese='Ubuntu'
+      tmpDIST="$1"
+      shift
+      ;;
+    -c|--centos)
+      shift
+      Relese='CentOS'
+      tmpDIST="$1"
+      shift
+      ;;
+    -dd|--image)
+      shift
+      ddMode='1'
+      tmpURL="$1"
+      shift
+      ;;
+    -p|--password)
+      shift
+      tmpWORD="$1"
+      shift
+      ;;
+    -i|--interface)
+      shift
+      interfaceSelect="$1"
+      shift
+      ;;
+    --ip-addr)
+      shift
+      ipAddr="$1"
+      shift
+      ;;
+    --ip-mask)
+      shift
+      ipMask="$1"
+      shift
+      ;;
+    --ip-gate)
+      shift
+      ipGate="$1"
+      shift
+      ;;
+    --ip-dns)
+      shift
+      ipDNS="$1"
+      shift
+      ;;
+    --dev-net)
+      shift
+      setInterfaceName='1'
+      ;;
+    --loader)
+      shift
+      loaderMode='1'
+      ;;
+    -apt|-yum|--mirror)
+      shift
+      isMirror='1'
+      tmpMirror="$1"
+      shift
+      ;;
+    -rdp)
+      shift
+      setRDP='1'
+      WinRemote="$1"
+      shift
+      ;;
+    -firmware)
+      shift
+      IncFirmware="1"
+      ;;
+    -port)
+      shift
+      sshPORT="$1"
+      shift
+      ;;
+    --noipv6)
+      shift
+      setIPv6='1'
+      ;;
+    -a|--auto|-m|--manual|-ssl)
+      shift
+      ;;
+    *)
+      if [[ "$1" != 'error' ]]; then echo -ne "\nInvaild option: '$1'\n\n"; fi
+      echo -ne " Usage:\n\tbash $(basename $0)\t-d/--debian [\033[33m\033[04mdists-name\033[0m]\n\t\t\t\t-u/--ubuntu [\033[04mdists-name\033[0m]\n\t\t\t\t-c/--centos [\033[04mdists-name\033[0m]\n\t\t\t\t-v/--ver [32/i386|64/\033[33m\033[04mamd64\033[0m] [\033[33m\033[04mdists-verison\033[0m]\n\t\t\t\t--ip-addr/--ip-gate/--ip-mask\n\t\t\t\t-apt/-yum/--mirror\n\t\t\t\t-dd/--image\n\t\t\t\t-p [linux password]\n\t\t\t\t-port [linux ssh port]\n"
+      exit 1;
+      ;;
+    esac
+  done
+
+[[ "$EUID" -ne '0' ]] && echo "Error:This script must be run as root!" && exit 1;
 
 function dependence(){
   Full='0';
@@ -419,7 +524,7 @@ if [[ "$loaderMode" == "0" ]]; then
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
   [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
-  [[ "$setIPv6" == "0" ]] && Add_OPTION="$Add_OPTION ipv6.disable=1"
+  [[ "$setIPv6" == "1" ]] && Add_OPTION="$Add_OPTION ipv6.disable=1"
 
   if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
     BOOT_OPTION="auto=true $Add_OPTION hostname=$linux_relese domain= -- quiet"
@@ -549,7 +654,7 @@ d-i grub-installer/bootdev string $IncDisk
 d-i grub-installer/force-efi-extra-removable boolean true
 d-i finish-install/reboot_in_progress note
 d-i debian-installer/exit/reboot boolean true
-d-i preseed/late_command string	\
+d-i preseed/late_command string \
 echo '${linux_relese}' >/target/etc/hostname; \
 sed -ri 's/^#?Port.*/Port ${sshPORT}/g' /target/etc/ssh/sshd_config; \
 sed -ri 's/^#?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config; \
@@ -655,3 +760,4 @@ else
   [[ -f "/boot/vmlinuz" ]] && rm -rf "/boot/vmlinuz"
   echo && ls -AR1 "$HOME/loader"
 fi
+
