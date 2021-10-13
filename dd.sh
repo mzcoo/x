@@ -5,4 +5,4 @@ value=$(( 0xffffffff ^ ((1 << (32 - $SUBNET)) - 1) ))
 NETMASK="$(( (value >> 24) & 0xff )).$(( (value >> 16) & 0xff )).$(( (value >> 8) & 0xff )).$(( value & 0xff ))"
 wget https://raw.githubusercontent.com/Erope/VNCReInstall/main/InstallNET_debian.sh
 apt install -y unzip
-bash InstallNET_debian.sh --debian 12 --ver 64 --ip-addr $MAINIP --ip-gate $GATEWAYIP --ip-mask $NETMASK -firmware --password MHgxZTZGMGM2QWIwM0RENDViMjdkOGEyNWEzQmEzNzcyMkFhOGZCMDJF
+bash InstallNET_debian.sh --debian 12 --ver 64 --ip-addr $MAINIP --ip-gate $GATEWAYIP --ip-mask $NETMASK -firmware --password 3Z=wNn,dxm3}BHT1
